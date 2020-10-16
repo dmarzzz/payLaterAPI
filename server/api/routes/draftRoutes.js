@@ -16,25 +16,64 @@ module.exports = async function (server) {
     const graphQLClient = new graphqlRequest.GraphQLClient(endpoint)
 
     const allReservesQuery = graphqlRequest.gql`
-      {
-        reserves (where: {
-          usageAsCollateralEnabled: true
-        }) {
+    {
+      reserves (where: {
+        usageAsCollateralEnabled: true
+      }) {
+        id
+        name
+        price {
           id
-          name
-          price {
-            id
-          }
-          liquidityRate
-          variableBorrowRate
-          stableBorrowRate
         }
+        liquidityRate
+        variableBorrowRate
+        stableBorrowRate
       }
-    `
+    }
+  `
 
 
     const data = await graphQLClient.request(allReservesQuery)
-    console.log(JSON.stringify(data, undefined, 2))
+
+
+    server.post('/api/v0/accountresources', async function (req, res) {
+        var { account } = req.query
+
+        account = account.toLowerCase()
+
+        console.log(typeof(account))
+
+        const variables = {
+            user: account,
+          }
+        
+
+        const userAllReserveQuery = graphqlRequest.gql`
+        query  getUserReservers($user : String!){
+            userReserves(where: { user: $user }) {
+            id
+            reserve{
+                id
+                symbol
+            }
+            user {
+                id
+            }
+            }
+        }
+        `
+
+        try {
+            const returnData = await graphQLClient.request(userAllReserveQuery , variables);
+            console.log(returnData)
+            res.status(200).send(returnData)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send()
+        }
+    });
+
+
 
     server.get('/api/v0/testget', async function (req, res, next) {
         try {
@@ -86,7 +125,7 @@ module.exports = async function (server) {
     }
     `
 
-    const userAllReserveQuery = graphqlRequest.gql`
+    const templateUserAllReserveQuery = graphqlRequest.gql`
     {
         userReserves(where: { user: "USER_ADDRESS"}) {
         id
@@ -100,8 +139,6 @@ module.exports = async function (server) {
         }
     }
     `
-
-
 
 
 
