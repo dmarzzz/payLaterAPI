@@ -55,6 +55,8 @@ module.exports = async function (server) {
             reserve{
                 id
                 symbol
+                stableBorrowRate
+                variableBorrowRate
             }
             user {
                 id
